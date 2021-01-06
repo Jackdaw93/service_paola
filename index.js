@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const multer = require("multer");
+const path = require("path");
 
 const app = express();
 
@@ -29,11 +29,14 @@ const fileFilter = (req, file, cb) => {
 app.use(
     multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
-app.use(bodyParser.json());
+app.use("/images", express.static(path.join(__dirname, "images")));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 const contactRoutes = require("./src/routes/contacts");
 
-app.use("/paola/v1", contactRoutes);
+app.use("/paola/v1/contact", contactRoutes);
 app.use((error, req, res, next) => {
     const status = error.errorStatus || 500;
     const message = error.message;
@@ -44,7 +47,11 @@ app.use((error, req, res, next) => {
 mongoose
     .connect(
         "mongodb+srv://admin:admin123@back-end-narasumber.ja48q.mongodb.net/contacts?retryWrites=true&w=majority",
-        { useNewUrlParser: true, useUnifiedTopology: true }
+        {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useFindAndModify: false,
+        }
     )
     .then(() => {
         app.listen(4000, () => console.log("Conected"));
