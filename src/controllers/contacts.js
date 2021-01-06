@@ -41,11 +41,25 @@ exports.createContact = (req, res, next) => {
 };
 
 exports.getAllContact = (req, res, next) => {
+    const currentPage = req.query.page || 1;
+    const perPage = req.query.perPage || 5;
+    let totalItems;
+
     Contact.find()
+        .countDocuments()
+        .then((count) => {
+            totalItems = count;
+            return Contact.find()
+                .skip((parseInt(currentPage) - 1) * parseInt(perPage))
+                .limit(parseInt(perPage));
+        })
         .then((result) => {
             res.status(200).json({
                 message: "All Data",
                 data: result,
+                total_data: totalItems,
+                per_page: parseInt(perPage),
+                current_page: parseInt(currentPage),
             });
         })
         .catch((err) => {
